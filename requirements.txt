@@ -1,0 +1,20 @@
+# Dependências do Framework e Servidor
+fastapi
+uvicorn[standard]
+
+# Dependências do Banco de Dados
+pymysql
+
+# Dependências de Segurança e Autenticação
+bcrypt
+python-jose[cryptography]
+python-dotenv
+
+# Dependências da LLM (Assistente de Sugestões)
+google-genai
+
+# Dependências para Lidar com Uploads (Opcional, mas útil para fotos de carros)
+python-multipart
+
+# Configuração Adicional (Recomendada)
+pydantic-settings
