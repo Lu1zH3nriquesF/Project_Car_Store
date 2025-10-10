@@ -2,8 +2,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from database import get_db_connection
-import bcrypt # type: ignore
+import bcrypt
 import os
+import pymysql
 
 app = FastAPI()
 
@@ -37,5 +38,24 @@ def register_user(user: UserIn):
     values (%s, %s, %s, %s, %s)
     
     """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, (user.name, user.email, hashed_password, user.account_type, user.phone_number))
+                conn.commit()
+        
+        return {'Message': 'User succefully registered.'}
+    except pymysql.err.IntegrityError:
+        raise HTTPException(status_code=400, detail='Email alredy register.')
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")
+    
+@app.post("/vehicle")
+def register_vehicle(vehicle: VehicleIn):
+    query = """
+        insert into vehicles
+    """
+        
+
     
     
