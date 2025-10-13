@@ -1,0 +1,278 @@
+/* src/index.css */
+
+/* --- Variáveis e Reset Global --- */
+:root {
+    --primary-color: #007bff; /* Azul primário */
+    --primary-dark: #0056b3;
+    --accent-color: #4CAF50; /* Verde de destaque para Sidebar */
+    --sidebar-bg: #2c3e50; /* Fundo Sidebar (Dark Blue) */
+    --background-light: #f4f7f6; /* Fundo leve da área de conteúdo */
+    --card-background: #ffffff;
+    --text-color: #333;
+    --border-color: #ddd;
+    --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+
+/* --- 1. Layout Principal com Sidebar (App.jsx) --- */
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Estilos da Sidebar --- */
+.sidebar {
+    width: 250px;
+    background-color: var(--sidebar-bg);
+    color: white;
+    padding: 20px 0;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar-title {
+    text-align: center;
+    color: var(--accent-color);
+    margin-bottom: 30px;
+    font-size: 1.8em;
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-button {
+    width: 100%;
+    padding: 15px 20px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.nav-button:hover {
+    background-color: #34495e; /* Hover ligeiramente mais claro */
+}
+
+.nav-button.active {
+    background-color: var(--primary-color); /* Primary Blue */
+    font-weight: bold;
+    border-left: 5px solid var(--accent-color); /* Green accent bar */
+}
+
+.sidebar-footer {
+    padding: 20px;
+    text-align: center;
+    font-size: 0.8em;
+    color: #7f8c8d;
+    margin-top: auto;
+}
+
+/* --- Estilos da Área de Conteúdo --- */
+.content-area {
+    flex-grow: 1; /* Ocupa o restante do espaço */
+    padding: 30px;
+    background-color: var(--background-light);
+    overflow-y: auto; /* Permite rolagem no conteúdo */
+}
+
+
+/* --- 2. Títulos e Divisores --- */
+h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    font-size: 2.2em;
+}
+
+h2 {
+    color: var(--primary-dark);
+    font-size: 1.4em;
+    margin-top: 0;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--border-color);
+    opacity: 0.5;
+    margin: 40px auto;
+    max-width: 900px; /* Delimita a largura do divisor */
+}
+
+
+/* --- 3. Formulários e Containers (Registration, AI, Profile) --- */
+.registration-container, .ai-suggestion-container {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-light);
+    margin: 40px auto;
+    max-width: 700px;
+}
+
+.registration-container form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.registration-container input,
+.registration-container select,
+.registration-container textarea,
+.ai-suggestion-container textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+.registration-container button,
+.ai-suggestion-container button {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    grid-column: span 2; /* Botões ocupam 2 colunas */
+}
+
+.registration-container button:hover:not(:disabled),
+.ai-suggestion-container button:hover:not(:disabled),
+.nav-button.active {
+    background-color: var(--primary-dark);
+}
+
+.registration-container button:disabled,
+.ai-suggestion-container button:disabled {
+    background-color: #a0c4ff;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Estilo para campos que ocupam a linha inteira */
+.registration-container select[style*="gridColumn: span 2"] {
+    grid-column: span 2;
+}
+
+/* --- 4. Listagem de Veículos (Grid) --- */
+.listing-container {
+    text-align: center;
+}
+
+.veiculos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 25px;
+    padding-top: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.vehicle-card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: left;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.vehicle-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.vehicle-card p {
+    margin: 7px 0;
+    font-size: 0.95em;
+}
+
+
+/* --- 5. Tabelas (CompanyList) --- */
+
+.data-table {
+    width: 100%;
+    max-width: 1000px;
+    margin: 40px auto;
+    border-collapse: collapse;
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.data-table thead {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f0f8ff; /* Light hover effect */
+}
+
+
+/* --- 6. Mensagens e Resultados --- */
+
+/* Mensagem de sucesso */
+.success-message, p[style*="color: green"] {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+    font-weight: 500;
+}
+
+/* Mensagem de erro */
+.error-message, p[style*="color: red"] {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    font-weight: 500;
+}
+
+/* Estilo para o resultado da IA */
+.ai-result {
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff !important;
+    border-radius: 8px;
+    padding: 25px;
+    margin-top: 20px;
+    text-align: left;
+}
