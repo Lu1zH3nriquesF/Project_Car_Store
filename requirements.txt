@@ -11,7 +11,7 @@ python-jose[cryptography]
 python-dotenv
 
 # Dependências da LLM (Assistente de Sugestões)
-google-genai
+google-generativeai
 
 # Dependências para Lidar com Uploads (Opcional, mas útil para fotos de carros)
 python-multipart
