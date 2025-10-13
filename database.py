@@ -1,6 +1,7 @@
 import pymysql.cursors # type: ignore
 from contextlib import contextmanager
 
+
 host = 'localhost'
 user = 'root'
 password = 'LHsf@13032005'

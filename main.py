@@ -71,16 +71,16 @@ def register_user(user: UserIn):
         raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")
     
 @app.post("/vehicle/")
-def register_vehicle(vehicle: VehicleIn, Seller_ID=1):
+async def register_vehicle(vehicle: VehicleIn, Seller_ID=1):
     query_vehicle = """
         insert into vehicles (Seller_ID, Type_Seller, Mark, Model, Year, Mileage, Price, Fuel_type, Color, Status, description)
         values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    seller_type = " "
+    seller_type = "Person"
     
     try:
         with get_db_connection() as conn:
-            with conn.cursor as cursor:
+            with conn.cursor() as cursor:
                 cursor.execute(query_vehicle, (Seller_ID, seller_type, vehicle.mark, vehicle.model, vehicle.year, vehicle.mileage, vehicle.price, vehicle.fuel_type, vehicle.color, vehicle.status, vehicle.description))
                 conn.commit()
         
