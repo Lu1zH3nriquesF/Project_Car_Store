@@ -69,11 +69,14 @@ function VehicleRegistration({ onSuccess, sellerId }) {
             }
 
             setMessage(responseData.Message || 'Vehicle successfully registered!');
-            setVehicleData(initialVehicleState);
-            
+            setVehicleData(initialVehicleState); // Limpa o formulário
+                
             if (onSuccess) {
-                onSuccess(); // Avança o SellerDashboard para a conclusão
+                // Este onSuccess agora será o handleVehicleRegistrationComplete do App.jsx,
+                // que apenas navega, sem alert().
+                onSuccess(); 
             }
+
 
         } catch (err) {
             setError(`Registration Error: ${err.message || 'Check your network connection.'}`);

@@ -2,13 +2,13 @@
 import React from 'react';
 
 const navItems = [
-    { key: 'listing', label: 'Ver Veículos (Comprar)' },
-    { key: 'sell', label: 'Vender Meu Carro' },
+    { key: 'listing', label: 'Ver Veículos' },
+    { key: 'auth', label: 'Login / Registrar' }, // NOVO
+    { key: 'sell', label: 'Vender Meu Carro' }, // Mantém o nome, mas agora é só o formulário
     { key: 'ai', label: 'Assistente IA' },
-    { key: 'companies', label: 'Empresas Registradas' }, // NOVO
+    { key: 'companies', label: 'Empresas Registradas' }, 
 ];
 
-// Recebe showProfile do App.jsx
 function Sidebar({ activeScreen, onNavigate, showProfile }) {
     return (
         <div className="sidebar">
@@ -26,7 +26,6 @@ function Sidebar({ activeScreen, onNavigate, showProfile }) {
                         </li>
                     ))}
                     
-                    {/* Botão de Perfil Condicional */}
                     {showProfile && (
                         <li>
                             <button
@@ -39,9 +38,7 @@ function Sidebar({ activeScreen, onNavigate, showProfile }) {
                     )}
                 </ul>
             </nav>
-            <div className="sidebar-footer">
-                <p>&copy; 2025</p>
-            </div>
+            {/* ... footer ... */}
         </div>
     );
 }

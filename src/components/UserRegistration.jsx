@@ -1,5 +1,5 @@
-// src/components/UserRegistration.jsx (Refatorado - Foco em Person/Company)
-import React, { useState } from 'react';
+// src/components/UserRegistration.jsx
+import React, { useState, useEffect } from 'react';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -7,70 +7,66 @@ const initialUserState = {
     name: '',
     email: '',
     password: '',
-    // account_type agora representa o tipo de VENDEDOR (Person ou Company)
-    account_type: 'Person', // Padrão: Pessoa
-    
-    // Campos condicionais para EMPRESA
+    account_type: 'Person', // Default
+    phone_number: '',
     company_name: '',
     cnpj: '',
-    
-    phone_number: '',
 };
 
-function UserRegistration({ onSuccess }) {
+/**
+ * Componente de Registro de Novo Usuário/Empresa.
+ * @param {function} onSuccess - Callback de sucesso (leva ao Perfil).
+ * @param {function} onSwitchToLogin - Callback para voltar ao Login.
+ */
+function UserRegistration({ onSuccess, onSwitchToLogin }) {
     const [userData, setUserData] = useState(initialUserState);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    
+    // Controla se os campos de Company (Empresa) devem aparecer
+    const isCompany = userData.account_type === 'Company'; 
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
-        let newUserData = { ...userData, [name]: value };
-
-        // LÓGICA DE LIMPEZA: Se mudar de Company para Person, zera os campos de Company
-        if (name === 'account_type' && value === 'Person') {
-            newUserData.company_name = '';
-            newUserData.cnpj = '';
-        }
-
-        setUserData(newUserData);
+        setUserData({ ...userData, [name]: value });
     };
+
+    useEffect(() => {
+        // Limpa campos específicos ao trocar o tipo de conta
+        if (!isCompany) {
+            setUserData(prev => ({ ...prev, company_name: '', cnpj: '' }));
+        } else {
+             setUserData(prev => ({ ...prev, name: '', phone_number: '' }));
+        }
+    }, [isCompany]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
         setError('');
         setLoading(true);
-        // Validação para Empresa
-        if (userData.account_type === 'Company' && (!userData.company_name || !userData.cnpj)) {
-            setError("Company registration requires Company Name and CNPJ.");
-            setLoading(false);
-            return;
-        }
         
-        // Lógica de limpeza: Cria o objeto para enviar
-        const { company_name, cnpj, ...baseData } = userData;
-        
-        let dataToSend = baseData;
-
-        if (userData.account_type === 'Company') {
-            // Se for Company, adiciona os campos extras
-            dataToSend = { ...dataToSend, company_name, cnpj };
-        } else {
-            // Se for Person, garante que os campos de Company não sejam enviados (limpeza final)
-            dataToSend = baseData; 
+        // 1. Prepara os dados: remove campos vazios opcionais
+        const dataToSend = {};
+        for (const key in userData) {
+            // Se o campo for nulo, vazio ou irrelevante (ex: Company_Name para Person), não o envie
+            if (userData[key] !== '' && (isCompany || key !== 'company_name' && key !== 'cnpj')) {
+                dataToSend[key] = userData[key];
+            } else if (!isCompany && key === 'account_type') {
+                dataToSend[key] = userData[key]; // Garante que o tipo de conta é enviado
+            } else if (isCompany && (key === 'name' || key === 'phone_number')) {
+                 // Nomes e telefones são opcionais para empresas, e os campos são vazios aqui
+                 // Vamos deixar o Python tratar como Optional
+                 continue; 
+            }
         }
-
-        // Mapeamento do nome da conta (Person/Company) para account_type (se o backend precisar)
-        // No seu main.py, o Pydantic só pede `account_type: str`.
-        // Vamos enviar 'Person' ou 'Company' neste campo.
         
         try {
             const response = await fetch(`${API_BASE_URL}/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSend), 
+                body: JSON.stringify(userData), // Enviamos o objeto completo, o backend trata os opcionais
             });
 
             const responseData = await response.json();
@@ -81,7 +77,6 @@ function UserRegistration({ onSuccess }) {
 
             setMessage(responseData.Message || 'Seller successfully registered!');
             
-            // CORREÇÃO CRÍTICA: Passar o ID e os dados do formulário
             if (onSuccess) {
                 // responseData.User_ID é o ID retornado pelo backend Python
                 onSuccess(userData, responseData.User_ID); 
@@ -94,45 +89,73 @@ function UserRegistration({ onSuccess }) {
             console.error('User registration error:', err);
         } finally {
             setLoading(false);
-            }
+        }
     };
-
 
     return (
         <div className="registration-container">
-            <h1>Seller Account Registration</h1>
+            <h1>Register New Seller</h1>
             
-            {message && <p style={{ color: 'green' }}>{message}</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {message && <p className="success-message">{message}</p>}
+            {error && <p className="error-message">{error}</p>}
 
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', maxWidth: '600px', margin: '0 auto' }}>
-                
-                {/* CAMPOS BÁSICOS */}
-                <input type="text" name="name" placeholder="Full Name / Responsible" value={userData.name} onChange={handleChange} required />
-                <input type="email" name="email" placeholder="Email" value={userData.email} onChange={handleChange} required />
-                
-                <input type="password" name="password" placeholder="Password" value={userData.password} onChange={handleChange} required />
-                <input type="tel" name="phone_number" placeholder="Phone Number (Optional)" value={userData.phone_number} onChange={handleChange} />
-                
-                {/* 1. Account Type (Person/Company) */}
-                <select name="account_type" value={userData.account_type} onChange={handleChange} required style={{ gridColumn: 'span 2' }}>
-                    <option value="Person">Individual Seller (Person)</option>
-                    <option value="Company">Dealership/Business (Company)</option>
+            <form onSubmit={handleSubmit}>
+                {/* Tipo de Conta */}
+                <select 
+                    name="account_type" 
+                    value={userData.account_type} 
+                    onChange={handleChange} 
+                    required
+                    style={{ gridColumn: 'span 2' }}
+                >
+                    <option value="Person">Pessoa (Vendedor Individual)</option>
+                    <option value="Company">Empresa (Concessionária)</option>
                 </select>
-                
-                {/* 2. Lógica Condicional: Se for EMPRESA */}
-                {userData.account_type === 'Company' && (
+
+                {/* Campos Específicos de Pessoa/Empresa */}
+                {isCompany ? (
                     <>
-                        <input type="text" name="company_name" placeholder="Company Name" value={userData.company_name} onChange={handleChange} required />
-                        <input type="text" name="cnpj" placeholder="CNPJ / Tax ID" value={userData.cnpj} onChange={handleChange} required />
+                        {/* Campos da Empresa */}
+                        <input type="text" name="company_name" placeholder="Nome da Empresa" value={userData.company_name} onChange={handleChange} required />
+                        <input type="text" name="cnpj" placeholder="CNPJ" value={userData.cnpj} onChange={handleChange} required />
+                    </>
+                ) : (
+                    <>
+                        {/* Campos de Pessoa */}
+                        <input type="text" name="name" placeholder="Nome Completo" value={userData.name} onChange={handleChange} required />
+                        <input type="text" name="phone_number" placeholder="Telefone" value={userData.phone_number} onChange={handleChange} />
                     </>
                 )}
                 
-                {/* O CAMPO vehicle_condition foi removido para simplificar o fluxo inicial */}
+                {/* Campos Comuns */}
+                <input type="email" name="email" placeholder="Email" value={userData.email} onChange={handleChange} required style={{ gridColumn: 'span 2' }} />
+                <input type="password" name="password" placeholder="Senha" value={userData.password} onChange={handleChange} required style={{ gridColumn: 'span 2' }} />
                 
-                <button type="submit" disabled={loading} style={{ gridColumn: 'span 2', padding: '10px' }}>
-                    {loading ? 'Registering...' : 'Register Seller'}
+                <button type="submit" disabled={loading} style={{ gridColumn: 'span 2' }}>
+                    {loading ? 'Registrando...' : 'Registrar Vendedor'}
                 </button>
+                
+                {/* Botão de Retorno para Login */}
+                {onSwitchToLogin && (
+                    <p style={{ gridColumn: 'span 2', textAlign: 'center', marginTop: '15px' }}>
+                        Já possui uma conta? 
+                        <button 
+                            type="button" 
+                            onClick={onSwitchToLogin} 
+                            style={{ 
+                                background: 'none', 
+                                color: 'var(--primary-color)', 
+                                textDecoration: 'underline', 
+                                cursor: 'pointer', 
+                                border: 'none',
+                                display: 'inline',
+                                padding: '0 5px'
+                            }}
+                        >
+                            Faça Login.
+                        </button>
+                    </p>
+                )}
             </form>
         </div>
     );

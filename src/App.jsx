@@ -2,89 +2,108 @@
 import React, { useState } from 'react';
 import './index.css'; 
 
-// Importação de todos os componentes de tela e layout
+// Componentes
 import Sidebar from './components/SideBar';
 import VehicleListing from './components/VehicleListing';
-import SellerDashboard from './components/SellerDashboard';
 import AISuggestion from './components/AISuggestion';
 import UserProfile from './components/UserProfile';
-import CompanyList from './components/CompanyList'; 
+import CompanyList from './components/CompanyList';
+// IMPORTANTE: AuthManager gerencia Login e Registro
+import AuthManager from './components/AuthManager'; 
+import VehicleRegistration from './components/VehicleRegistration'; 
 
-// Mapeamento de chaves da Sidebar para os componentes de tela
+// Mapeamento de telas
 const screenMap = {
   listing: VehicleListing,
-  sell: SellerDashboard,
   ai: AISuggestion,
   companies: CompanyList,
-  profile: UserProfile,
+  profile: UserProfile, 
+  auth: AuthManager,       // Nova tela que gerencia Login/Registro
+  sell: VehicleRegistration,    
 };
 
 function App() {
-  // Estado para controlar a tela atualmente ativa (ex: 'listing', 'sell', 'profile')
   const [activeScreen, setActiveScreen] = useState('listing');
-  
-  // Estado para armazenar o ID do usuário recém-registrado, simulando um login
+  // Simula o estado de login
   const [loggedInUserId, setLoggedInUserId] = useState(null); 
+  const [accountType, setAccountType] = useState(null); 
 
-  // Função chamada pelo SellerDashboard ao completar o registro/venda
-  const handleRegistrationComplete = (newUserId) => {
-      // Se o SellerDashboard retornar um ID, significa que um usuário foi registrado
-      if (newUserId) {
-          setLoggedInUserId(newUserId);
-          setActiveScreen('profile'); // Redireciona para o Perfil
-      } else {
-          // Se não houver ID (ex: só completou o cadastro de carro), volta para a listagem
-          setActiveScreen('listing');
-      }
+  /**
+   * Chamado após sucesso no Login ou Registro.
+   * Assume que o backend retorna o ID e o Tipo de Conta.
+   */
+  const handleAuthSuccess = (userData, newUserId) => {
+      setLoggedInUserId(newUserId);
+      setAccountType(userData.account_type);
+      
+      // Redireciona para o perfil após sucesso
+      setActiveScreen('profile'); 
   };
+  
+  /**
+   * Chamado quando o cadastro do veículo é concluído.
+   */
+  const handleVehicleRegistrationComplete = () => {
+    // Retorna para a listagem principal após o sucesso
+    setActiveScreen('listing'); 
+  }
 
-  // Função para renderizar o componente ativo com suas props necessárias
   const renderScreen = () => {
-    
-    // 1. Fluxo de Venda (Registro/Dashboard)
-    if (activeScreen === 'sell') {
-        // Passa o callback para lidar com o ID do novo usuário
-        return <SellerDashboard onComplete={handleRegistrationComplete} />;
+    const CurrentScreen = screenMap[activeScreen];
+
+    // Lógica de Proteção de Rota para 'Vender Carro'
+    if (activeScreen === 'sell' && loggedInUserId === null) {
+      return (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <h1>Acesso Negado</h1>
+          <p>Você precisa estar logado para vender um carro.</p>
+          <button onClick={() => setActiveScreen('auth')} className="nav-button active" style={{ marginTop: '20px' }}>
+            Ir para Login/Registro
+          </button>
+        </div>
+      );
     }
     
-    // 2. Perfil do Usuário
+    // 1. Tela de Login/Registro
+    if (activeScreen === 'auth') {
+        // Passa o callback de sucesso para o AuthManager
+        return <AuthManager onSuccess={handleAuthSuccess} />;
+    }
+    
+    // 2. Tela de Venda (Se logado)
+    if (activeScreen === 'sell') {
+        return (
+            <VehicleRegistration 
+                onSuccess={handleVehicleRegistrationComplete} 
+                sellerId={loggedInUserId} 
+            />
+        );
+    }
+    
+    // 3. Tela de Perfil
     if (activeScreen === 'profile') {
-        // É crucial passar o ID do usuário para o componente de Perfil
+        // Exibe tela de erro se estiver tentando acessar o perfil sem ID
         if (loggedInUserId === null) {
-            return <h2>Please register or log in to view your profile.</h2>;
+             return <div className="error-message" style={{textAlign: 'center'}}>Por favor, faça login para ver seu perfil.</div>;
         }
         return <UserProfile userId={loggedInUserId} />;
     }
     
-    // 3. Outras Telas (Listing, AI, Companies)
-    const CurrentScreen = screenMap[activeScreen] || VehicleListing;
+    // 4. Outras Telas
     return <CurrentScreen />;
   };
 
   return (
     <div className="app-container">
-      
-      {/* 1. Sidebar */}
       <Sidebar 
         activeScreen={activeScreen} 
         onNavigate={setActiveScreen} 
-        // Indica se a opção 'Meu Perfil' deve aparecer
         showProfile={loggedInUserId !== null}
       />
       
-      {/* 2. Conteúdo Principal */}
       <main className="content-area">
-        {/* Verifica se a tela ativa é 'profile' e se o usuário não está 'logado' */}
-        {activeScreen === 'profile' && loggedInUserId === null ? (
-            <div style={{ padding: '50px', textAlign: 'center' }}>
-                <h1>Access Denied</h1>
-                <p>Please register a new account through "Vender Meu Carro" to view your profile.</p>
-            </div>
-        ) : (
-            renderScreen()
-        )}
+        {renderScreen()}
       </main>
-      
     </div>
   );
 }
