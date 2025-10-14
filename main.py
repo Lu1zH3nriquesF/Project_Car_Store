@@ -59,23 +59,94 @@ def register_user(user: UserIn):
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     query_user = """
-    insert into users (name, email, Password_hash, users.Account_Type, users.Phone_Number, Company_Name, CNPJ)
-    values (%s, %s, %s, %s, %s, %s, %s)
-    
+        insert into users (name, email, Password_hash, users.Account_Type, users.Phone_Number)
+        values (%s, %s, %s, %s, %s)
     """
+    users_data = (
+        user.name,
+        user.email,
+        hashed_password,
+        user.account_type,
+        user.phone_number
+    )
+    
+    query_company = """
+        insert into companies (user_id, company_name, cnpj)
+        values (%s, %s, %s)
+    """
+    
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
-                cursor.execute(query_user, (user.name, user.email, hashed_password, user.account_type, user.phone_number, user.company_name, user.cnpj))
+                cursor.execute(query_user, users_data)
                 new_user_id = cursor.lastrowid
+                    
+                if user.account_type == 'Company':
+                    if not user.company_name or not user.cnpj:
+                         raise HTTPException(status_code=400, detail='Company name and CNPJ are required for Company registration.')
+                    
+                    company_data = (
+                        new_user_id, # Chave Estrangeira
+                        user.company_name, 
+                        user.cnpj
+                    )
+    
+                    cursor.execute(query_company, company_data)
+                    
                 conn.commit()
-                
-        
-        return {'Message': 'User succefully registered.', 'User_ID': new_user_id}
+        return {
+            'Message': 'User succefully registered.', 
+            'User_ID': new_user_id,
+            'Account_Type': user.account_type 
+        }
     except pymysql.err.IntegrityError:
         raise HTTPException(status_code=400, detail='Email alredy register.')
+    except HTTPException as e:
+        # Repassa o erro de validação (ex: CNPJ faltando)
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")
+        raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")   
+    
+@app.get("/profile/{user_id}")
+def get_user_profile(user_id: int):
+    
+    query_user = """
+        select id, name, email, Account_Type, Phone_Number
+        from users
+        where id = %s
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                cursor.execute(query_user, (user_id,))
+                user_data = cursor.fetchone()
+
+                if not user_data:
+                    raise HTTPException(status_code=404, detail="User not found.")
+                
+                # 2. Se for uma Empresa, busca os dados adicionais (companies)
+                if user_data['Account_Type'] == 'Company':
+                    query_company = """
+                    SELECT company_name, cnpj
+                    FROM companies
+                    WHERE user_id = %s
+                    """
+                    cursor.execute(query_company, (user_id,))
+                    company_data = cursor.fetchone()
+                    
+                    if company_data:
+                        # Junta os dicionários para formar o perfil completo
+                        user_data.update(company_data)
+
+                # Remove o hash da senha (embora não devesse estar na query_user, é bom ter certeza)
+                if 'Password_hash' in user_data:
+                    del user_data['Password_hash']
+                    
+                return user_data
+
+    except Exception as e:
+        # Garante que qualquer erro de DB ou lógica seja capturado
+        raise HTTPException(status_code=500, detail=f"Database error when loading profile: {e}")
     
 @app.post("/vehicle/")
 async def register_vehicle(vehicle: VehicleIn):
