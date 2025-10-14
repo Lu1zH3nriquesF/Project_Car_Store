@@ -24,7 +24,6 @@ function UserRegistration({ onSuccess, onSwitchToLogin }) {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     
-    // Controla se os campos de Company (Empresa) devem aparecer
     const isCompany = userData.account_type === 'Company'; 
 
     const handleChange = (e) => {
@@ -36,8 +35,6 @@ function UserRegistration({ onSuccess, onSwitchToLogin }) {
         // Limpa campos específicos ao trocar o tipo de conta
         if (!isCompany) {
             setUserData(prev => ({ ...prev, company_name: '', cnpj: '' }));
-        } else {
-             setUserData(prev => ({ ...prev, name: '', phone_number: '' }));
         }
     }, [isCompany]);
 
@@ -47,26 +44,12 @@ function UserRegistration({ onSuccess, onSwitchToLogin }) {
         setError('');
         setLoading(true);
         
-        // 1. Prepara os dados: remove campos vazios opcionais
-        const dataToSend = {};
-        for (const key in userData) {
-            // Se o campo for nulo, vazio ou irrelevante (ex: Company_Name para Person), não o envie
-            if (userData[key] !== '' && (isCompany || key !== 'company_name' && key !== 'cnpj')) {
-                dataToSend[key] = userData[key];
-            } else if (!isCompany && key === 'account_type') {
-                dataToSend[key] = userData[key]; // Garante que o tipo de conta é enviado
-            } else if (isCompany && (key === 'name' || key === 'phone_number')) {
-                 // Nomes e telefones são opcionais para empresas, e os campos são vazios aqui
-                 // Vamos deixar o Python tratar como Optional
-                 continue; 
-            }
-        }
-        
         try {
             const response = await fetch(`${API_BASE_URL}/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(userData), // Enviamos o objeto completo, o backend trata os opcionais
+                // Enviamos o objeto completo, o backend trata os opcionais e a separação de tabelas
+                body: JSON.stringify(userData), 
             });
 
             const responseData = await response.json();
@@ -78,8 +61,11 @@ function UserRegistration({ onSuccess, onSwitchToLogin }) {
             setMessage(responseData.Message || 'Seller successfully registered!');
             
             if (onSuccess) {
-                // responseData.User_ID é o ID retornado pelo backend Python
-                onSuccess(userData, responseData.User_ID); 
+                // Passa o account_type (seja do formulário ou retornado pelo backend)
+                onSuccess(
+                    { account_type: responseData.Account_Type || userData.account_type }, 
+                    responseData.User_ID
+                ); 
             }
 
             setUserData(initialUserState); 
@@ -115,13 +101,13 @@ function UserRegistration({ onSuccess, onSwitchToLogin }) {
                 {/* Campos Específicos de Pessoa/Empresa */}
                 {isCompany ? (
                     <>
-                        {/* Campos da Empresa */}
+                        {/* Campos da Empresa (Obrigatorios para Company) */}
                         <input type="text" name="company_name" placeholder="Nome da Empresa" value={userData.company_name} onChange={handleChange} required />
                         <input type="text" name="cnpj" placeholder="CNPJ" value={userData.cnpj} onChange={handleChange} required />
                     </>
                 ) : (
                     <>
-                        {/* Campos de Pessoa */}
+                        {/* Campos de Pessoa (Obrigatorios para Person) */}
                         <input type="text" name="name" placeholder="Nome Completo" value={userData.name} onChange={handleChange} required />
                         <input type="text" name="phone_number" placeholder="Telefone" value={userData.phone_number} onChange={handleChange} />
                     </>

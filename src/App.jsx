@@ -18,7 +18,7 @@ const screenMap = {
   ai: AISuggestion,
   companies: CompanyList,
   profile: UserProfile, 
-  auth: AuthManager,       // Nova tela que gerencia Login/Registro
+  auth: AuthManager,       // Tela de autenticação unificada
   sell: VehicleRegistration,    
 };
 
@@ -26,15 +26,20 @@ function App() {
   const [activeScreen, setActiveScreen] = useState('listing');
   // Simula o estado de login
   const [loggedInUserId, setLoggedInUserId] = useState(null); 
+  // CRÍTICO: 'Person', 'Company', ou null
   const [accountType, setAccountType] = useState(null); 
 
   /**
    * Chamado após sucesso no Login ou Registro.
    * Assume que o backend retorna o ID e o Tipo de Conta.
+   * @param {object} userData - Inclui o account_type
+   * @param {number} newUserId - ID retornado
    */
   const handleAuthSuccess = (userData, newUserId) => {
       setLoggedInUserId(newUserId);
-      setAccountType(userData.account_type);
+      
+      // CRÍTICO: Armazena o tipo de conta
+      setAccountType(userData.account_type); 
       
       // Redireciona para o perfil após sucesso
       setActiveScreen('profile'); 
@@ -82,7 +87,6 @@ function App() {
     
     // 3. Tela de Perfil
     if (activeScreen === 'profile') {
-        // Exibe tela de erro se estiver tentando acessar o perfil sem ID
         if (loggedInUserId === null) {
              return <div className="error-message" style={{textAlign: 'center'}}>Por favor, faça login para ver seu perfil.</div>;
         }
@@ -98,7 +102,8 @@ function App() {
       <Sidebar 
         activeScreen={activeScreen} 
         onNavigate={setActiveScreen} 
-        showProfile={loggedInUserId !== null}
+        loggedInUserId={loggedInUserId} // Passa o ID para saber se está logado
+        accountType={accountType}       // CRÍTICO: Passa o tipo para o ACL na Sidebar
       />
       
       <main className="content-area">
