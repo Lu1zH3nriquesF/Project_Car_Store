@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from datetime import datetime
 from decimal import Decimal
+from starlette import status
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -43,6 +44,17 @@ class UserIn(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+class UserUpdateIn(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    company_name: Optional[str] = None
+
+class PasswordResetIn(BaseModel):
+    email: str
+    new_password: str
+    confirm_password: str
     
 class VehicleIn(BaseModel):
     mark: str
@@ -141,7 +153,7 @@ def register_user(user: UserIn):
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")  
-
+    
 @app.post("/login/")
 def login(user_credentials: UserLogin):
     """
@@ -188,6 +200,163 @@ def login(user_credentials: UserLogin):
     except Exception as e:
         # Erros como senha inválida (bcrypt) ou problemas de DB
         raise HTTPException(status_code=401, detail="Invalid credentials.") 
+
+@app.post("/auth/reset-password")
+def reset_password(data: PasswordResetIn):
+    """
+    Redefine a senha diretamente após validação de email e senhas.
+    """
+    
+    # 1. Validação de Senhas
+    # ATENÇÃO: Verifique as chaves new_password/newPassword/confirm_password
+    if data.new_password != data.confirm_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                            detail="As novas senhas não coincidem.")
+    
+    if len(data.new_password) < 6:
+         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, 
+                            detail="A senha deve ter pelo menos 6 caracteres.")
+    
+    # 2. Conecta e Inicia Transação
+    try:
+        # Usa o gerenciador de contexto para a conexão
+        with get_db_connection() as conn:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                
+                # 3. Encontra o ID do usuário pelo email
+                find_user_query = "SELECT id FROM users WHERE email = %s"
+                cursor.execute(find_user_query, (data.email,))
+                user_record = cursor.fetchone()
+                
+                if not user_record:
+                    # Se não achou o usuário, informa erro de forma genérica.
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                                        detail="Email não encontrado.")
+
+                user_id = user_record['id']
+                
+                # 4. Hasheia a nova senha (APENAS PARA USO EM PROJETO PESSOAL, O HASH É MELHOR)
+                # nova_senha_hashed = hash_password(data.new_password)
+                password_bytes = data.new_password.encode('utf-8') # SUBSTITUA PELA VERSÃO HASH SE USAR BCrypt/etc
+                new_password_hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+                new_password_hashed_for_db = new_password_hashed.decode('utf-8')
+                
+                # 5. Atualiza a senha no DB
+                update_query = "UPDATE users SET Password_hash = %s WHERE id = %s"
+                cursor.execute(update_query, (new_password_hashed_for_db, user_id))
+                conn.commit()
+                
+                return {"message": "Sua senha foi redefinida com sucesso."}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Erro ao redefinir senha: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                            detail="Erro interno ao tentar redefinir a senha.")
+        
+@app.put("/profile/edit/{user_id}")
+def update_user_profile(user_id: int, user_data: UserUpdateIn):
+    """
+    Atualiza o perfil com regras específicas baseadas no Account_Type.
+    """
+    
+    # 1. Busca o tipo de conta do usuário
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor(pymysql.cursors.DictCursor)
+            
+            # Você deve ter uma coluna Account_Type na sua tabela USERS
+            cursor.execute("SELECT Account_Type FROM users WHERE id = %s", (user_id,))
+            user_record = cursor.fetchone()
+            
+            if not user_record:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado.")
+                
+            account_type = user_record['Account_Type']
+            is_company = account_type == 'Company'
+            
+            # Inicialização das transações
+            user_updates = {}
+            company_updates = {}
+            data_to_update = user_data.model_dump(exclude_none=True)
+            
+            # 2. Aplica as Regras de Negócio e Separação de Dados
+            
+            allowed_user_fields = ['email'] # Email é permitido para ambos
+            
+            if not data_to_update:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nenhum dado fornecido para atualização.")
+
+            for field, value in data_to_update.items():
+                if field == 'name' and not is_company:
+                    # Permitido para Pessoa (Person)
+                    user_updates[field] = value
+                elif field == 'phone_number' and not is_company:
+                    # Permitido para Pessoa (Person)
+                    user_updates[field] = value
+                elif field == 'company_name' and is_company:
+                    # Permitido para Empresa (Company)
+                    company_updates[field] = value
+                elif field == 'email':
+                    # Email é permitido para ambos e vai para a tabela users
+                    user_updates[field] = value
+                else:
+                    # Ignora campos que não são permitidos para o tipo de conta
+                    pass
+                    
+            # --- EXECUÇÃO DO UPDATE (USANDO A LÓGICA DE EXECUÇÃO DO PASSO ANTERIOR) ---
+            
+            # --- ATUALIZAÇÃO DA TABELA USERS ---
+            if user_updates:
+                updates = []
+                update_values = []
+                
+                for field, value in user_updates.items():
+                    updates.append(f"`{field}` = %s") 
+                    update_values.append(value)
+                
+                update_user_query = f"UPDATE users SET {', '.join(updates)} WHERE id = %s"
+                update_values.append(user_id)
+                
+                cursor.execute(update_user_query, tuple(update_values))
+
+            # --- ATUALIZAÇÃO DA TABELA COMPANIES ---
+            if company_updates:
+                
+                company_updates_list = []
+                company_update_values = []
+
+                for field, value in company_updates.items():
+                    company_updates_list.append(f"`{field}` = %s") 
+                    company_update_values.append(value)
+                
+                update_company_query = f"UPDATE companies SET {', '.join(company_updates_list)} WHERE user_id = %s"
+                company_update_values.append(user_id)
+                
+                cursor.execute(update_company_query, tuple(company_update_values))
+                
+                if cursor.rowcount == 0:
+                    # Rollback se tentou atualizar a empresa e não achou
+                    conn.rollback() 
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                                        detail="Dados de empresa não encontrados para este ID de usuário.")
+
+
+            # 3. Finaliza Transação
+            conn.commit()
+            return {"message": "Perfil atualizado com sucesso!"}
+
+    except HTTPException as e:
+        if conn: conn.rollback()
+        raise e
+    except Exception as e:
+        print(f"Erro ao atualizar perfil: {e}")
+        if conn: conn.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                            detail="Erro interno ao tentar atualizar o perfil.")
+
+
     
 @app.get("/profile/{user_id}")
 def get_user_profile(user_id: int):
