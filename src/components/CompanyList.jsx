@@ -1,18 +1,40 @@
 // src/components/CompanyList.jsx
 import React, { useState, useEffect } from 'react';
 
-// URL CRÍTICA: Mantenha a URL do seu endpoint do FastAPI
 const COMPANIES_API = 'http://localhost:8000/api/companies'; 
 
-/**
- * Componente que busca e exibe a lista de empresas parceiras.
- */
+// Componente simples para renderizar um único Card de Empresa
+const CompanyCard = ({ company }) => (
+    <div className="company-card">
+        {/* Usando as chaves do seu backend: company_name e user_id (como ID) */}
+        <h3 className="card-title">{company.company_name}</h3>
+        <p className="card-detail">
+            <strong>ID:</strong> {company.user_id}
+        </p>
+        <p className="card-detail">
+            <strong>CNPJ:</strong> {company.cnpj}
+        </p>
+        {company.email && (
+            <p className="card-detail">
+                <strong>Email:</strong> {company.email}
+            </p>
+        )}
+        {company.address && (
+            <p className="card-detail">
+                <strong>Endereço:</strong> {company.address}
+            </p>
+        )}
+    </div>
+);
+
+
 const CompanyList = () => {
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // ... (Lógica de fetch idêntica à anterior)
         const fetchCompanies = async () => {
             try {
                 const response = await fetch(COMPANIES_API); 
@@ -39,10 +61,6 @@ const CompanyList = () => {
         fetchCompanies();
     }, []);
 
-    // ----------------------------------------------------
-    // Lógica de Renderização Condicional
-    // ----------------------------------------------------
-
     if (loading) {
         return <div className="loading-message">Carregando lista de empresas...</div>;
     }
@@ -54,26 +72,17 @@ const CompanyList = () => {
     if (companies.length === 0) {
         return <div className="empty-message">Nenhuma empresa registrada.</div>;
     }
-
-    // ----------------------------------------------------
-    // Renderização da Lista de Empresas (Adaptação para as chaves do Backend)
-    // ----------------------------------------------------
     
     return (
         <div className="company-list-container">
             <h1>Empresas Parceiras</h1>
-            <ul className="company-list">
+            {/* 🎯 AQUI: Container que usará CSS Grid ou Flexbox para organizar os cards */}
+            <div className="company-cards-grid"> 
                 {companies.map(company => (
-                    // 🎯 CORREÇÃO 1: Usando 'user_id' como a chave única da lista
-                    <li key={company.user_id} className="company-item">
-                        <div className="company-name">
-                            {/* 🎯 CORREÇÃO 2: Usando 'company_name' para exibir o nome */}
-                            <strong>Nome: {company.company_name}</strong> 
-                        </div>
-                        
-                    </li>
+                    // Passamos o objeto 'company' para o novo componente Card
+                    <CompanyCard key={company.user_id} company={company} />
                 ))}
-            </ul>
+            </div>
         </div>
     );
 };

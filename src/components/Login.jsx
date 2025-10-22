@@ -1,4 +1,4 @@
-// src/components/Login.jsx
+// src/components/Login.jsx (ADAPTADO COM RESET DE SENHA)
 import React, { useState } from 'react';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -7,8 +7,9 @@ const API_BASE_URL = 'http://localhost:8000';
  * Componente de Login de Usuário Existente.
  * @param {function} onSuccess - Callback chamado após o login bem-sucedido.
  * @param {function} onSwitchToRegister - Callback para mudar para a tela de Registro.
+ * @param {function} onSwitchToResetPassword - Callback para mudar para a tela de Redefinição de Senha.
  */
-function Login({ onSuccess, onSwitchToRegister }) {
+function Login({ onSuccess, onSwitchToRegister, onSwitchToResetPassword }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
@@ -21,7 +22,6 @@ function Login({ onSuccess, onSwitchToRegister }) {
         setError('');
         setLoading(true);
 
-        // NOTA: Você precisará criar uma rota /login/ no seu main.py!
         try {
             const response = await fetch(`${API_BASE_URL}/login/`, {
                 method: 'POST',
@@ -55,6 +55,16 @@ function Login({ onSuccess, onSwitchToRegister }) {
         }
     };
 
+    const linkStyle = { 
+        background: 'none', 
+        color: 'var(--primary-color)', 
+        textDecoration: 'underline', 
+        cursor: 'pointer', 
+        border: 'none',
+        display: 'inline',
+        padding: '0 5px'
+    };
+
     return (
         <div className="registration-container">
             <h1>User Login</h1>
@@ -63,8 +73,6 @@ function Login({ onSuccess, onSwitchToRegister }) {
             {error && <p className="error-message">{error}</p>}
 
             <form onSubmit={handleSubmit}>
-                {/* O grid tem 2 colunas, mas o Login usa apenas uma, 
-                então forçamos span 2 */}
                 <input 
                     type="email" 
                     placeholder="Email" 
@@ -82,25 +90,29 @@ function Login({ onSuccess, onSwitchToRegister }) {
                     style={{ gridColumn: 'span 2' }}
                 />
                 
+                {/* 🎯 LINK "ESQUECI A SENHA" VIA CALLBACK */}
+                <p style={{ gridColumn: 'span 2', textAlign: 'right', margin: '5px 0' }}>
+                    <button 
+                        type="button" 
+                        onClick={onSwitchToResetPassword} 
+                        style={{ ...linkStyle, padding: '0' }}
+                    >
+                        Esqueci a Senha?
+                    </button>
+                </p>
+                
                 <button type="submit" disabled={loading} style={{ gridColumn: 'span 2' }}>
                     {loading ? 'Logging In...' : 'Login'}
                 </button>
             </form>
 
+            {/* Link para o Registro */}
             <p style={{ gridColumn: 'span 2', textAlign: 'center', marginTop: '15px' }}>
                 Don't have an account? 
                 <button 
                     type="button" 
                     onClick={onSwitchToRegister} 
-                    style={{ 
-                        background: 'none', 
-                        color: 'var(--primary-color)', 
-                        textDecoration: 'underline', 
-                        cursor: 'pointer', 
-                        border: 'none',
-                        display: 'inline',
-                        padding: '0 5px'
-                    }}
+                    style={linkStyle}
                 >
                     Register here.
                 </button>

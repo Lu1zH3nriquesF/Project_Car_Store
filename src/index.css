@@ -6,7 +6,7 @@
     --primary-dark: #0056b3;
     --accent-color: #4CAF50; /* Verde de destaque para Sidebar */
     --sidebar-bg: #2c3e50; /* Fundo Sidebar (Dark Blue) */
-    --background-light: #c2c2c2; /* Fundo leve da área de conteúdo */
+    --background-light: #ebebeb; /* Fundo leve da área de conteúdo */
     --card-background: #ffffff;
     --text-color: #000000;
     --border-color: #ddd;
@@ -122,6 +122,84 @@ hr {
 
 
 /* --- 3. Formulários e Containers (Registration, AI, Profile) --- */
+/* Estilo para centralizar a página e limitar a largura */
+.profile-page-container {
+    display: flex;
+    justify-content: center; /* Centraliza horizontalmente */
+    padding: 40px 20px;
+    width: 100%;
+}
+
+/* O CARD em si */
+.profile-card {
+    background-color: #ffffff; /* Fundo branco */
+    border: 1px solid #e0e0e0;
+    border-radius: 12px; /* Cantos arredondados */
+    padding: 30px;
+    width: 100%;
+    max-width: 600px; /* Largura máxima para um visual de card */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    transition: transform 0.3s;
+}
+
+.profile-card-title {
+    color: #007bff;
+    font-size: 1.8em;
+    margin-top: 0;
+}
+
+.account-type-tag {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-separator {
+    border: 0;
+    height: 1px;
+    background-color: #eee;
+    margin: 20px 0;
+}
+
+.section-title {
+    color: #333;
+    font-size: 1.2em;
+    margin-top: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #007bff;
+    padding-left: 10px;
+}
+
+/* Ajusta o layout dos detalhes dentro de cada seção (opcional) */
+.profile-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas */
+    gap: 10px 20px;
+    margin-bottom: 15px;
+}
+
+.profile-details-grid p {
+    margin: 0;
+}
+
+.btn-edit-profile {
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.btn-edit-profile:hover {
+    background-color: #218838;
+}
+
 .registration-container, .ai-suggestion-container {
     background-color: var(--card-background);
     padding: 30px;
@@ -240,6 +318,35 @@ hr {
 
 .data-table tbody tr:hover {
     background-color: #f0f8ff; /* Light hover effect */
+}
+
+/* Exemplo de CSS para um layout de grid */
+.company-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.company-card {
+    background-color: #ffffff; /* Fundo branco ou claro */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.company-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.card-title {
+    color: #0056b3; /* Cor primária */
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
 }
 
 
