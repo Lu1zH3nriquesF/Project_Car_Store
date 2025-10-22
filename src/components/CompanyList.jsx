@@ -1,9 +1,13 @@
 // src/components/CompanyList.jsx
 import React, { useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:8000';
+// URL CRÍTICA: Mantenha a URL do seu endpoint do FastAPI
+const COMPANIES_API = 'http://localhost:8000/api/companies'; 
 
-function CompanyList() {
+/**
+ * Componente que busca e exibe a lista de empresas parceiras.
+ */
+const CompanyList = () => {
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -11,18 +15,22 @@ function CompanyList() {
     useEffect(() => {
         const fetchCompanies = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/companies/`);
+                const response = await fetch(COMPANIES_API); 
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP Error! Status: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(`Status ${response.status}: ${errorData.detail || 'Erro desconhecido.'}`);
                 }
                 
                 const data = await response.json();
+                
                 setCompanies(data);
+                setError(null);
                 
             } catch (err) {
-                setError("Could not load company list. Please check the console for details.");
-                console.error("Error fetching companies:", err);
+                console.error("Erro na busca de empresas:", err);
+                setError(`Could not load company list. Please check the console for details. (Detalhe: ${err.message})`);
+                setCompanies([]); 
             } finally {
                 setLoading(false);
             }
@@ -31,46 +39,43 @@ function CompanyList() {
         fetchCompanies();
     }, []);
 
+    // ----------------------------------------------------
+    // Lógica de Renderização Condicional
+    // ----------------------------------------------------
+
     if (loading) {
-        return <div>Loading companies...</div>;
+        return <div className="loading-message">Carregando lista de empresas...</div>;
     }
-    
+
     if (error) {
-        return <div style={{ color: 'red', padding: '20px' }}>Error loading data: {error}</div>;
+        return <div className="error-message">Error loading data: {error}</div>;
     }
 
     if (companies.length === 0) {
-        return <div style={{ padding: '20px', textAlign: 'center' }}>No companies found at the moment.</div>;
+        return <div className="empty-message">Nenhuma empresa registrada.</div>;
     }
 
+    // ----------------------------------------------------
+    // Renderização da Lista de Empresas (Adaptação para as chaves do Backend)
+    // ----------------------------------------------------
+    
     return (
-        <div className="listing-container">
-            <h1>Registered Companies ({companies.length})</h1>
-            
-            <table className="data-table">
-                <thead>
-                    <tr>
-                        <th>Company Name</th>
-                        <th>CNPJ</th>
-                        <th>Responsible</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {companies.map(company => (
-                        <tr key={company.id}>
-                            <td>{company.company_name || 'N/A'}</td>
-                            <td>{company.cnpj || 'N/A'}</td>
-                            <td>{company.name}</td>
-                            <td>{company.email}</td>
-                            <td>{company.phone_number || 'N/A'}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="company-list-container">
+            <h1>Empresas Parceiras</h1>
+            <ul className="company-list">
+                {companies.map(company => (
+                    // 🎯 CORREÇÃO 1: Usando 'user_id' como a chave única da lista
+                    <li key={company.user_id} className="company-item">
+                        <div className="company-name">
+                            {/* 🎯 CORREÇÃO 2: Usando 'company_name' para exibir o nome */}
+                            <strong>Nome: {company.company_name}</strong> 
+                        </div>
+                        
+                    </li>
+                ))}
+            </ul>
         </div>
     );
-}
+};
 
 export default CompanyList;

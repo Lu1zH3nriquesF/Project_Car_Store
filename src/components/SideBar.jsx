@@ -2,11 +2,11 @@
 import React from 'react';
 
 const navItems = [
-    { key: 'listing', label: 'Ver Veículos' },
-    { key: 'auth', label: 'Login / Registrar' }, 
-    { key: 'sell', label: 'Vender Meu Carro' }, 
-    { key: 'ai', label: 'Assistente IA' },
-    { key: 'companies', label: 'Empresas Registradas' }, 
+    { key: 'listing', label: 'Vehicles' },
+    { key: 'auth', label: 'Login / Register' }, 
+    { key: 'sell', label: 'Sell a Car' }, 
+    { key: 'ai', label: 'AI Assistent' },
+    { key: 'companies', label: 'Company List' }, 
 ];
 
 /**
@@ -54,7 +54,7 @@ function Sidebar({ activeScreen, onNavigate, loggedInUserId, accountType }) {
 
     return (
         <div className="sidebar">
-            <h2 className="sidebar-title">Car Hub</h2>
+            <h2 className="sidebar-title">Car Store</h2>
             <nav>
                 <ul className="nav-list">
                     {filteredNavItems.map(item => (
@@ -75,7 +75,7 @@ function Sidebar({ activeScreen, onNavigate, loggedInUserId, accountType }) {
                                 onClick={() => onNavigate('profile')}
                                 className={activeScreen === 'profile' ? 'nav-button active' : 'nav-button'}
                             >
-                                Meu Perfil
+                                My Profile
                             </button>
                         </li>
                     )}

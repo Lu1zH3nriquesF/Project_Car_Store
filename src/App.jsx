@@ -2,67 +2,76 @@
 import React, { useState } from 'react';
 import './index.css'; 
 
-// Componentes
+// Importação de todos os Componentes
 import Sidebar from './components/SideBar';
 import VehicleListing from './components/VehicleListing';
 import AISuggestion from './components/AISuggestion';
 import UserProfile from './components/UserProfile';
 import CompanyList from './components/CompanyList';
-// IMPORTANTE: AuthManager gerencia Login e Registro
 import AuthManager from './components/AuthManager'; 
 import VehicleRegistration from './components/VehicleRegistration'; 
-
-// Mapeamento de telas
-const screenMap = {
-  listing: VehicleListing,
-  ai: AISuggestion,
-  companies: CompanyList,
-  profile: UserProfile, 
-  auth: AuthManager,       // Tela de autenticação unificada
-  sell: VehicleRegistration,    
-};
+import Checkout from './components/Checkout'; // Certifique-se de que esta importação está correta
 
 function App() {
   const [activeScreen, setActiveScreen] = useState('listing');
-  // Simula o estado de login
   const [loggedInUserId, setLoggedInUserId] = useState(null); 
-  // CRÍTICO: 'Person', 'Company', ou null
   const [accountType, setAccountType] = useState(null); 
+  
+  // ESTADO CHAVE: Armazena o objeto completo do veículo selecionado para checkout
+  const [vehicleToCheckout, setVehicleToCheckout] = useState(null); 
 
   /**
    * Chamado após sucesso no Login ou Registro.
-   * Assume que o backend retorna o ID e o Tipo de Conta.
-   * @param {object} userData - Inclui o account_type
-   * @param {number} newUserId - ID retornado
    */
   const handleAuthSuccess = (userData, newUserId) => {
       setLoggedInUserId(newUserId);
-      
-      // CRÍTICO: Armazena o tipo de conta
       setAccountType(userData.account_type); 
       
-      // Redireciona para o perfil após sucesso
-      setActiveScreen('profile'); 
+      // Se houver um veículo pendente, vai para o checkout, senão vai para o perfil
+      const nextScreen = vehicleToCheckout ? 'checkout' : 'profile';
+      setActiveScreen(nextScreen); 
   };
   
   /**
    * Chamado quando o cadastro do veículo é concluído.
    */
   const handleVehicleRegistrationComplete = () => {
-    // Retorna para a listagem principal após o sucesso
     setActiveScreen('listing'); 
+  }
+  
+  /**
+   * Inicia o processo de checkout.
+   * Chamado a partir do VehicleListing (que recebe do CardVehicle).
+   */
+  const handleStartCheckout = (vehicle) => {
+    setVehicleToCheckout(vehicle); // Salva o veículo no estado
+    
+    if (loggedInUserId === null) {
+      alert("Você precisa estar logado para comprar um carro. Redirecionando para Login.");
+      setActiveScreen('auth'); // Redireciona para login/registro
+      return; // CRÍTICO: Para a execução
+    }
+    setActiveScreen('checkout');
+  };
+
+  /**
+   * Chamado após o checkout ser concluído (sucesso, falha ou cancelamento).
+   */
+  const handleCheckoutComplete = () => {
+    setVehicleToCheckout(null); // Limpa o veículo do estado
+    setActiveScreen('listing');  // Volta para a listagem
   }
 
   const renderScreen = () => {
-    const CurrentScreen = screenMap[activeScreen];
+    // Lógica de Proteção de Rota - Nível 1
+    const isProtectedScreen = ['sell', 'profile', 'checkout'].includes(activeScreen);
 
-    // Lógica de Proteção de Rota para 'Vender Carro'
-    if (activeScreen === 'sell' && loggedInUserId === null) {
+    if (isProtectedScreen && loggedInUserId === null && activeScreen !== 'auth') {
       return (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
+        <div className="access-denied">
           <h1>Acesso Negado</h1>
-          <p>Você precisa estar logado para vender um carro.</p>
-          <button onClick={() => setActiveScreen('auth')} className="nav-button active" style={{ marginTop: '20px' }}>
+          <p>Você precisa estar logado para acessar esta página.</p>
+          <button onClick={() => setActiveScreen('auth')} className="nav-button">
             Ir para Login/Registro
           </button>
         </div>
@@ -71,11 +80,10 @@ function App() {
     
     // 1. Tela de Login/Registro
     if (activeScreen === 'auth') {
-        // Passa o callback de sucesso para o AuthManager
         return <AuthManager onSuccess={handleAuthSuccess} />;
     }
     
-    // 2. Tela de Venda (Se logado)
+    // 2. Tela de Venda (após verificação de loggedInUserId)
     if (activeScreen === 'sell') {
         return (
             <VehicleRegistration 
@@ -85,16 +93,39 @@ function App() {
         );
     }
     
-    // 3. Tela de Perfil
+    // 3. Tela de Perfil (após verificação de loggedInUserId)
     if (activeScreen === 'profile') {
-        if (loggedInUserId === null) {
-             return <div className="error-message" style={{textAlign: 'center'}}>Por favor, faça login para ver seu perfil.</div>;
-        }
+        if (loggedInUserId === null) return null; 
         return <UserProfile userId={loggedInUserId} />;
     }
+
+    // 4. Tela de Listagem (CRÍTICA: Ponto de partida do checkout)
+    if (activeScreen === 'listing') {
+      return <VehicleListing onBuyClick={handleStartCheckout} />;
+    }
+
+    // 5. Tela de Checkout (após verificação de loggedInUserId e vehicleToCheckout)
+    if (activeScreen === 'checkout') {
+      // 🚨 MENSAGEM DE ERRO/DEBUG: Se o estado estiver inválido, mostra a mensagem de erro.
+      if (!vehicleToCheckout || loggedInUserId === null) {
+        return <div className="error-message">Erro: Dados de compra ou ID de usuário ausentes.</div>;
+      }
+      return (
+        <Checkout 
+          vehicleData={vehicleToCheckout} 
+          // 🚨 VERIFIQUE O NOME DESTA PROP NO CHECKOUT.JSX
+          clienteId={loggedInUserId} 
+          onSuccess={handleCheckoutComplete} 
+          onCancel={handleCheckoutComplete} 
+        />
+      );
+    }
     
-    // 4. Outras Telas
-    return <CurrentScreen />;
+    // 6. Outras Telas (Simples)
+    if (activeScreen === 'ai') return <AISuggestion />;
+    if (activeScreen === 'companies') return <CompanyList />;
+    
+    return <div className="content-placeholder">Página não encontrada.</div>;
   };
 
   return (
@@ -102,8 +133,8 @@ function App() {
       <Sidebar 
         activeScreen={activeScreen} 
         onNavigate={setActiveScreen} 
-        loggedInUserId={loggedInUserId} // Passa o ID para saber se está logado
-        accountType={accountType}       // CRÍTICO: Passa o tipo para o ACL na Sidebar
+        loggedInUserId={loggedInUserId} 
+        accountType={accountType}       
       />
       
       <main className="content-area">

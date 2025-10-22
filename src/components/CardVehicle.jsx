@@ -1,39 +1,63 @@
 // src/components/CardVehicle.jsx
 import React from 'react';
 
-// Receives vehicle data as 'data' prop
-const CardVehicle = ({ data }) => {
-    // Destructuring fields using the backend's casing (Initial Capitalization)
+/**
+ * Componente que exibe um único cartão de veículo e o botão de compra.
+ * @param {object} vehicle - O objeto de dados do veículo (com as chaves do DB/JSON).
+ * @param {function} onBuyClick - Função de callback do App.jsx para iniciar o checkout.
+ */
+const CardVehicle = ({ vehicle, onBuyClick }) => {
+    
+    // 🎯 CRÍTICO: Desestruturar usando os nomes EXATOS das chaves JSON retornadas pelo FastAPI
     const { 
+        id, 
         Mark, 
         Model, 
         Year, 
         Price, 
-        Mileage, 
-        Fuel_type, 
-        Color, 
-        Status, 
-        description // 'description' is lowercase in your DB query
-    } = data;
+        Inventory_Status 
+    } = vehicle;
+    
+    // Converte o preço para um número com duas casas decimais
+    const formattedPrice = Price ? parseFloat(Price).toFixed(2) : 'N/A';
+    
+    // Verifica a disponibilidade (usa a chave e o valor exatos do DB)
+    const isAvailable = Inventory_Status === 'Available';
+
+    const handleBuy = () => {
+        if (!isAvailable) {
+            alert("Este veículo não está disponível para compra.");
+            return;
+        }
+        
+        const confirmed = window.confirm(`Confirmar: Comprar ${Mark} ${Model} por R$ ${formattedPrice}?`);
+        if (confirmed) {
+            // Chama a função passada pelo App.jsx, enviando o objeto completo do veículo
+            onBuyClick(vehicle); 
+        }
+    };
 
     return (
-        <div className="vehicle-card">
-            <h2>{Mark} {Model} ({Year})</h2>
+        <div className={`card-vehicle ${isAvailable ? '' : 'sold'}`}>
+            <h3 className="card-title">{Mark} {Model} ({Year})</h3>
             
-            <div className="details">
-                {/* Formatting price for locale currency */}
-                <p><strong>Price:</strong> US$ {Price ? Price.toLocaleString('en-US', { minimumFractionDigits: 2 }) : 'N/A'}</p>
-                <p><strong>Mileage:</strong> {Mileage} miles</p>
-                <p><strong>Fuel Type:</strong> {Fuel_type}</p>
-                <p><strong>Color:</strong> {Color}</p>
-                <p><strong>Status:</strong> {Status}</p>
+            <p className="card-price">Preço: <strong>R$ {formattedPrice}</strong></p>
+            <p className="card-id">ID: {id}</p>
+            
+            <div className="card-status">
+                Status: 
+                <span className={isAvailable ? 'status-available' : 'status-sold'}>
+                    {isAvailable ? 'Disponível' : 'Vendido'}
+                </span>
             </div>
-            
-            {description && (
-                <p className="description">
-                    <strong>Description:</strong> {description}
-                </p>
-            )}
+
+            <button 
+                onClick={handleBuy} 
+                disabled={!isAvailable}
+                className={`buy-button ${isAvailable ? '' : 'disabled'}`}
+            >
+                {isAvailable ? 'Comprar Agora' : 'Vendido'}
+            </button>
         </div>
     );
 };
