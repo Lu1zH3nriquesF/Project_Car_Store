@@ -1,13 +1,15 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from database import get_db_connection
 import bcrypt # type: ignore
 import os
 import pymysql # type: ignore
 from dotenv import load_dotenv
 import google.generativeai as genai
+from datetime import datetime
+from decimal import Decimal
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -38,6 +40,10 @@ class UserIn(BaseModel):
     company_name: Optional[str] = None 
     cnpj: Optional[str] = None
     
+class UserLogin(BaseModel):
+    email: str
+    password: str
+    
 class VehicleIn(BaseModel):
     mark: str
     model: str
@@ -49,10 +55,39 @@ class VehicleIn(BaseModel):
     status: str
     description: Optional[str] = None
     seller_id: int
-    #O Id do vendendor será obtido da sessão/token de autenticação
     
+class VehicleResponse(BaseModel):
+    id: int
+    Seller_ID: int
+    Mark: str
+    Model: str
+    Year: int
+    Mileage: int
+    Price: Decimal
+    Fuel_type: str
+    Color: str
+    Status: str
+    Description: Optional[str] = None
+    Inventory_Status: str
+    
+    class Config:
+        from_attributes = True 
+
+class CompanyResponse(BaseModel):
+    user_id: int
+    company_name: str
+    cnpj: str
+    
+    class Config:
+        from_attributes = True
+    
+class SellsIn(BaseModel):
+    client_id: int
+    car_id: int    
+    total_value: float
 class SearchLLM(BaseModel):
     preferences: str
+    
     
 @app.post("/register/")
 def register_user(user: UserIn):
@@ -105,7 +140,54 @@ def register_user(user: UserIn):
         # Repassa o erro de validação (ex: CNPJ faltando)
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")   
+        raise HTTPException(status_code=500, detail=f"The user couldn't be register: {e}")  
+
+@app.post("/login/")
+def login(user_credentials: UserLogin):
+    """
+    Autentica o usuário pelo email e senha (hashing).
+    Retorna User_ID e Account_Type se o login for bem-sucedido.
+    """
+    
+    # 1. Busca o usuário e o HASH da senha
+    query = """
+    SELECT id, email, Password_hash, Account_Type FROM users WHERE email = %s
+    """
+    
+    user_id = None
+    account_type = None
+    stored_hash = None 
+    
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                cursor.execute(query, (user_credentials.email,))
+                user_found = cursor.fetchone()
+                
+                if user_found:
+                    user_id = user_found['id']
+                    account_type = user_found['Account_Type']
+                    stored_hash = user_found['Password_hash']
+                else:
+                    raise HTTPException(status_code=401, detail="Invalid credentials.")
+        
+        # 2. COMPARAÇÃO USANDO BCRYPT (COMPARANDO HASHES)
+        # Se você está usando Password_hash, o bcrypt.checkpw é obrigatório.
+        if not bcrypt.checkpw(user_credentials.password.encode('utf-8'), stored_hash.encode('utf-8')):
+             raise HTTPException(status_code=401, detail="Invalid credentials.")
+
+        # 3. Retorna sucesso
+        return {
+            "Message": "Login successful.", 
+            "User_ID": user_id, 
+            "Account_Type": account_type
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        # Erros como senha inválida (bcrypt) ou problemas de DB
+        raise HTTPException(status_code=401, detail="Invalid credentials.") 
     
 @app.get("/profile/{user_id}")
 def get_user_profile(user_id: int):
@@ -167,22 +249,22 @@ async def register_vehicle(vehicle: VehicleIn):
     except Exception as e:
         raise  HTTPException(status_code=500, detail=f"Fail to register this vehicle: {e}")
     
-@app.get("/vehicle/")
+@app.get("/api/vehicles/available", response_model=List[VehicleResponse])
 def list_vehicle(mark: Optional[str] = None, min_price: Optional[float] = None):
-    base_query = "select * from vehicles where 1=1"
+    base_query = "select * from vehicles where Inventory_Status = 'Available'"
     params = []
     
     if mark:
-        base_query += " and mark = %s"
+        base_query += " and Mark = %s"
         params.append(mark)
     
     if min_price is not None:
-        base_query += " and price >= %s"
+        base_query += " and Price >= %s"
         params.append(min_price)
     
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 cursor.execute(base_query, params)
                 vehicles = cursor.fetchall()
         
@@ -190,9 +272,104 @@ def list_vehicle(mark: Optional[str] = None, min_price: Optional[float] = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fail to search this vehicle: {e}")
     
-# main.py (Adicionar esta nova rota)
+@app.get("/api/companies", response_model=List[CompanyResponse])
+def companies_list():
+    """
+    Retorna a lista completa de todas as empresas registradas.
+    """
+    query = "SELECT user_id, company_name, cnpj FROM companies"
+    
+    try:
+        # Tenta se conectar ao banco de dados
+        with get_db_connection() as conn:
+            # 🎯 CRÍTICO: Usa DictCursor para retornar os dados como dicionários (JSON)
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+                cursor.execute(query)
+                companies = cursor.fetchall()
+        
+        # O FastAPI validará a lista 'companies' com o CompanyResponse
+        return companies
+        
+    except Exception as e:
+        # Trata qualquer erro de banco de dados ou execução
+        print(f"Erro ao buscar lista de empresas: {e}")
+        # Envia um erro 500 para o frontend
+        raise HTTPException(status_code=500, detail=f"Falha ao carregar a lista de empresas. Detalhe: {e}")
+    
+@app.post("/api/vendas/checkout")
+async def sells(checkout: SellsIn):
+    """
+    Processar a transação de venda de um carro para o banco de dados:
+    1. Verificar o status do carro (deve ser 'Disponível')
+    2. Registrar a venda da tabela 'vendas'
+    3. Atualiza o status do carro para vendidos.
+    """
+    
+    query_check = "select Inventory_Status, Price from vehicles where id = %s for update"
+    query_insert_data = """
+        insert into sells (Client_id, Car_id, Total_value, Purchase_Status)
+        values (%s, %s, %s, %s)
+    """
+    
+    query_update_vehicle = "update vehicles set Inventory_Status = 'Sold' where id = %s"
+    
+    final_price = 0.0
+    conn = None
+    
+    try:
+        with get_db_connection() as conn:
+            conn.begin()
+            with conn.cursor() as cursor:
+                cursor.execute(query_check, checkout.car_id)
+                vehicle = cursor.fetchone()
+                
+                if not vehicle:
+                    conn.rollback()
+                    raise HTTPException(status_code=404, detail="Vehicle not found.")
+                
+                current_status = vehicle['Inventory_Status']
+                final_price = float(vehicle['Price'])
+                
+                if current_status != 'Available':
+                    conn.rollback()
+                    raise HTTPException(status_code=404, detail=f"Vehicle status is {current_status}. Cannot proceed with checkout")
+                
+                
+                purchase_status = 'Completed'
+                purchase_date = (
+                    checkout.client_id,
+                    checkout.car_id,                    
+                    final_price,
+                    purchase_status,                    
+                )
+                
+                cursor.execute(query_insert_data, purchase_date)
+                sell_id = cursor.lastrowid
+                
+                cursor.execute(query_update_vehicle, (checkout.car_id,))
+                conn.commit()
+                
+        return {
+            "Message": "Checkout sucessful. Vehicle mark is sold.",
+            "Sell_id": sell_id,
+            "Car_id": checkout.car_id,
+            "Value sold": final_price
+        }
+    except HTTPException as e:
+        # Rollback já está sendo chamado dentro da exceção HTTP
+        if 'conn' in locals() and conn:
+            conn.rollback() 
+        raise e
+        
+    except Exception as e:
+        # Outros erros de DB
+        if 'conn' in locals() and conn:
+            conn.rollback() # Garante o rollback em caso de falha de conexão ou query
+        print(f"Checkout error: {e}")
+        raise HTTPException(status_code=500, detail=f"Transaction failed: {e}")
+    
 @app.get("/companies/")
-async def list_companies():
+async def companies_list():
     query = """
     SELECT id, email, name, phone_number, company_name, cnpj 
     FROM users 
@@ -245,7 +422,7 @@ async def suggest_car(search: SearchLLM, user_id: Optional[str] = None):
        
        prompt = f"""
         Você é um assistente de compra de carros.
-        Analise o pedido do usuário para sugerir 3 modelos de carros no mercado brasileiro com uma breve justificativa para cada.
+        Analise o pedido do usuário para sugerir até 10(ou se especificar a quantidade) modelos de carros no mercado brasileiro com uma breve justificativa para cada.
         Pedido: '{search.preferences}'
         Responda em português e de forma amigável.
        """
