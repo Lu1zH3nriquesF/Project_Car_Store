@@ -2,15 +2,17 @@
 
 /* --- Variáveis e Reset Global --- */
 :root {
-    --primary-color: #007bff; /* Azul primário */
-    --primary-dark: #0056b3;
-    --accent-color: #4CAF50; /* Verde de destaque para Sidebar */
-    --sidebar-bg: #2c3e50; /* Fundo Sidebar (Dark Blue) */
-    --background-light: #ebebeb; /* Fundo leve da área de conteúdo */
+    --primary-color: #3f51b5;      /* Azul Indigo Profundo (Mais corporativo/confiável) */
+    --primary-dark: #303f9f;
+    --accent-color: #ff9800;       /* Laranja/Âmbar (Destaque moderno) */
+    --sidebar-bg: #263238;         /* Dark Slate Blue (Menos harsh que o preto) */
+    --background-light: #f4f7f9;   /* Fundo cinza muito suave */
     --card-background: #ffffff;
-    --text-color: #000000;
-    --border-color: #ddd;
-    --shadow-light: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --text-color-dark: #333333;
+    --text-color-light: #f0f0f0;
+    --border-color: #e0e0e0;
+    --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.08); /* Sombra mais sutil */
+    --shadow-elevated: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
 * {
@@ -20,14 +22,16 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--background-light);
-    color: var(--text-color);
+    color: var(--text-color-dark);
     line-height: 1.6;
 }
 
 
-/* --- 1. Layout Principal com Sidebar (App.jsx) --- */
+/* -------------------------------------------------------------------------------------- */
+/* --- 1. Layout Principal com Sidebar --- */
+/* -------------------------------------------------------------------------------------- */
 
 .app-container {
     display: flex;
@@ -37,77 +41,91 @@ body {
 /* --- Estilos da Sidebar --- */
 .sidebar {
     width: 250px;
-    background-color: rgb(34, 34, 34);
-    color: white;
-    padding: 20px 0;
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.25);
+    background-color: var(--sidebar-bg);
+    color: var(--text-color-light);
+    padding: 25px 0;
+    box-shadow: 3px 0 15px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    
+    /* CRÍTICO: ROLAGEM APLICADA AO CONTAINER PRINCIPAL DA SIDEBAR */
+    overflow-y: auto; 
 }
 
 .sidebar-title {
     text-align: center;
-    color: blue;
-    margin-bottom: 30px;
+    color: var(--accent-color); 
+    margin-bottom: 40px;
     font-size: 1.8em;
+    font-weight: 700;
+    flex-shrink: 0; 
+    padding: 0 25px; 
 }
 
 .nav-list {
     list-style: none;
     padding: 0;
+    flex-grow: 1;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .nav-button {
     width: 100%;
-    padding: 15px 20px;
+    padding: 15px 25px;
     text-align: left;
     background: none;
     border: none;
-    color: white;
+    color: var(--text-color-light);
     font-size: 1em;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, border-left 0.3s;
 }
 
 .nav-button:hover {
-    background-color: #34495e; /* Hover ligeiramente mais claro */
+    background-color: #37474f; 
 }
 
 .nav-button.active {
-    background-color: var(--primary-color); /* Primary Blue */
+    background-color: var(--primary-color); 
     font-weight: bold;
-    border-left: 5px solid var(--accent-color); /* Green accent bar */
+    border-left: 5px solid var(--accent-color); 
 }
 
 .sidebar-footer {
     padding: 20px;
     text-align: center;
     font-size: 0.8em;
-    color: #7f8c8d;
+    color: #9e9e9e;
     margin-top: auto;
+    flex-shrink: 0;
 }
 
 /* --- Estilos da Área de Conteúdo --- */
 .content-area {
-    flex-grow: 1; /* Ocupa o restante do espaço */
-    padding: 30px;
+    flex-grow: 1; 
+    padding: 40px;
     background-color: var(--background-light);
-    overflow-y: auto; /* Permite rolagem no conteúdo */
+    overflow-y: auto; 
 }
 
 
+/* -------------------------------------------------------------------------------------- */
 /* --- 2. Títulos e Divisores --- */
+/* -------------------------------------------------------------------------------------- */
+
 h1 {
     text-align: center;
     color: var(--primary-color);
-    margin-bottom: 30px;
-    font-size: 2.2em;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    font-weight: 300; 
 }
 
 h2 {
     color: var(--primary-dark);
-    font-size: 1.4em;
+    font-size: 1.6em;
     margin-top: 0;
 }
 
@@ -115,104 +133,85 @@ hr {
     border: 0;
     height: 1px;
     background-color: var(--border-color);
-    opacity: 0.5;
     margin: 40px auto;
-    max-width: 900px; /* Delimita a largura do divisor */
+    max-width: 900px;
 }
 
 
-/* --- 3. Formulários e Containers (Registration, AI, Profile) --- */
-/* Estilo para centralizar a página e limitar a largura */
+/* -------------------------------------------------------------------------------------- */
+/* --- 3. Formulários e Cards de Dados (Registration, Profile) --- */
+/* -------------------------------------------------------------------------------------- */
+
 .profile-page-container {
     display: flex;
-    justify-content: center; /* Centraliza horizontalmente */
+    justify-content: center;
     padding: 40px 20px;
     width: 100%;
 }
 
-/* O CARD em si */
 .profile-card {
-    background-color: #ffffff; /* Fundo branco */
-    border: 1px solid #e0e0e0;
-    border-radius: 12px; /* Cantos arredondados */
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
     padding: 30px;
     width: 100%;
-    max-width: 600px; /* Largura máxima para um visual de card */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    transition: transform 0.3s;
+    max-width: 650px;
+    box-shadow: var(--shadow-subtle); 
+    transition: box-shadow 0.3s;
+}
+
+.profile-card:hover {
+    box-shadow: var(--shadow-elevated);
 }
 
 .profile-card-title {
-    color: #007bff;
+    color: var(--primary-color);
     font-size: 1.8em;
     margin-top: 0;
 }
 
 .account-type-tag {
-    font-weight: bold;
-    color: #555;
+    font-weight: 600;
+    color: #777;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-
-.profile-separator {
-    border: 0;
-    height: 1px;
-    background-color: #eee;
-    margin: 20px 0;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .section-title {
-    color: #333;
-    font-size: 1.2em;
-    margin-top: 15px;
+    color: var(--text-color-dark);
+    font-size: 1.3em;
+    margin-top: 25px;
     margin-bottom: 10px;
-    border-left: 4px solid #007bff;
-    padding-left: 10px;
+    border-left: 4px solid var(--accent-color); 
+    padding-left: 12px;
+    font-weight: 500;
 }
 
-/* Ajusta o layout dos detalhes dentro de cada seção (opcional) */
 .profile-details-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Duas colunas */
-    gap: 10px 20px;
+    grid-template-columns: 1fr 2fr; 
+    gap: 15px 25px;
     margin-bottom: 15px;
 }
 
-.profile-details-grid p {
-    margin: 0;
-}
-
-.btn-edit-profile {
-    margin-top: 20px;
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s;
-}
-
-.btn-edit-profile:hover {
-    background-color: #218838;
+.profile-details-grid strong {
+    color: var(--primary-dark);
 }
 
 .registration-container, .ai-suggestion-container {
     background-color: var(--card-background);
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: var(--shadow-light);
+    border-radius: 12px;
+    box-shadow: var(--shadow-elevated);
     margin: 40px auto;
-    max-width: 700px;
+    max-width: 600px; 
 }
 
 .registration-container form {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 18px; 
 }
 
 .registration-container input,
@@ -220,10 +219,19 @@ hr {
 .registration-container textarea,
 .ai-suggestion-container textarea {
     width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    padding: 14px; 
+    border: 1px solid #ccc; 
+    border-radius: 8px; 
     font-size: 1em;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.registration-container input:focus,
+.registration-container select:focus,
+.ai-suggestion-container textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2); 
+    outline: none;
 }
 
 .registration-container button,
@@ -231,68 +239,147 @@ hr {
     background-color: var(--primary-color);
     color: white;
     font-weight: 600;
-    padding: 12px 15px;
+    padding: 15px 15px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s;
-    grid-column: span 2; /* Botões ocupam 2 colunas */
+    grid-column: span 2;
+    letter-spacing: 0.5px;
 }
 
 .registration-container button:hover:not(:disabled),
-.ai-suggestion-container button:hover:not(:disabled),
-.nav-button.active {
+.ai-suggestion-container button:hover:not(:disabled) {
     background-color: var(--primary-dark);
 }
 
 .registration-container button:disabled,
 .ai-suggestion-container button:disabled {
-    background-color: #a0c4ff;
+    background-color: #9fa8da; 
     cursor: not-allowed;
-    opacity: 0.8;
 }
 
-/* Estilo para campos que ocupam a linha inteira */
-.registration-container select[style*="gridColumn: span 2"] {
-    grid-column: span 2;
+.link-style { 
+    background: none; 
+    color: var(--primary-color); 
+    text-decoration: underline; 
+    cursor: pointer; 
+    border: none;
+    display: inline;
+    padding: 0 5px;
+    font-weight: 500;
 }
 
-/* --- 4. Listagem de Veículos (Grid) --- */
-.listing-container {
-    text-align: center;
-}
 
-.veiculos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 25px;
-    padding-top: 20px;
-    max-width: 1200px;
+/* -------------------------------------------------------------------------------------- */
+/* --- 4. Listagem de Veículos (Cards) --- */
+/* -------------------------------------------------------------------------------------- */
+
+.vehicle-listing-container {
+    padding: 20px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
-.vehicle-card {
-    background-color: rgb(179, 179, 179);
+.car-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px; 
+    margin-top: 30px;
+}
+
+.card-vehicle {
     border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: left;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: var(--shadow-subtle);
+    background-color: var(--card-background);
     transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 
-.vehicle-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+.card-vehicle:hover {
+    transform: translateY(-8px); 
+    box-shadow: var(--shadow-elevated);
 }
 
-.vehicle-card p {
-    margin: 7px 0;
+.card-title {
+    color: var(--primary-dark);
+    font-size: 1.6em;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    font-weight: 600;
+}
+
+.card-detail {
+    margin: 5px 0;
     font-size: 0.95em;
+    color: #555;
+}
+
+.card-price {
+    margin: 15px 0;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.card-price strong {
+    color: #4CAF50; 
+    font-size: 1.5em;
+    font-weight: 700;
+    display: block; 
+    margin-top: 5px;
+}
+
+.card-status {
+    margin: 10px 0 20px 0;
+    font-weight: 600;
+}
+
+.status-available {
+    color: #4CAF50;
+    margin-left: 5px;
+}
+
+.status-sold {
+    color: #dc3545;
+    margin-left: 5px;
+}
+
+.card-vehicle.sold {
+    opacity: 0.7;
+    border-left: 5px solid #dc3545;
+}
+
+.buy-button {
+    margin-top: auto; 
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.buy-button:hover:not([disabled]) {
+    background-color: var(--primary-dark);
+}
+
+.buy-button[disabled] {
+    background-color: #9fa8da;
+    cursor: not-allowed;
 }
 
 
-/* --- 5. Tabelas (CompanyList) --- */
+/* -------------------------------------------------------------------------------------- */
+/* --- 5. Tabela (CompanyList) --- */
+/* -------------------------------------------------------------------------------------- */
 
 .data-table {
     width: 100%;
@@ -300,8 +387,8 @@ hr {
     margin: 40px auto;
     border-collapse: collapse;
     background-color: var(--card-background);
-    box-shadow: var(--shadow-light);
-    border-radius: 8px;
+    box-shadow: var(--shadow-elevated);
+    border-radius: 12px;
     overflow: hidden;
 }
 
@@ -311,141 +398,119 @@ hr {
 }
 
 .data-table th, .data-table td {
-    padding: 12px 15px;
+    padding: 15px 18px;
     text-align: left;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .data-table tbody tr:hover {
-    background-color: #f0f8ff; /* Light hover effect */
+    background-color: #e3f2fd; 
 }
 
-/* Exemplo de CSS para um layout de grid */
-.company-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.company-card {
-    background-color: #ffffff; /* Fundo branco ou claro */
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-}
-
-.company-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-}
-
-.card-title {
-    color: #0056b3; /* Cor primária */
-    margin-top: 0;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 10px;
-}
-
-
+/* -------------------------------------------------------------------------------------- */
 /* --- 6. Mensagens e Resultados --- */
+/* -------------------------------------------------------------------------------------- */
 
-/* Mensagem de sucesso */
-.success-message, p[style*="color: green"] {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    border: 1px solid #c3e6cb;
-    font-weight: 500;
-}
-
-/* Mensagem de erro */
-.error-message, p[style*="color: red"] {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    border: 1px solid #f5c6cb;
-    font-weight: 500;
-}
-
-/* Estilo para o resultado da IA */
-.ai-result {
-    background-color: #e6f7ff;
-    border: 1px solid #91d5ff !important;
+.success-message {
+    background-color: #e8f5e9;
+    color: #388e3c;
+    padding: 15px;
     border-radius: 8px;
-    padding: 25px;
-    margin-top: 20px;
-    text-align: left;
+    margin-bottom: 20px;
+    border: 1px solid #c8e6c9;
+    font-weight: 500;
 }
 
-/* Estilos para o Container de Confirmação */
-.checkout-container {
-    max-width: 500px;
-    margin: 50px auto;
+.error-message {
+    background-color: #ffebee;
+    color: #d32f2f;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #ffcdd2;
+    font-weight: 500;
+}
+
+.ai-result {
+    background-color: #e8eaf6; 
+    border: 1px solid #7986cb !important;
+    border-radius: 8px;
     padding: 30px;
-    border: 1px solid #007bff;
-    border-radius: 10px;
-    box-shadow: 0 6px 12px rgba(0, 123, 255, 0.2);
-    background-color: #fff;
+    margin-top: 25px;
+    text-align: left;
+    white-space: pre-wrap; 
+}
+
+
+/* -------------------------------------------------------------------------------------- */
+/* --- 7. Checkout e Ações --- */
+/* -------------------------------------------------------------------------------------- */
+
+.checkout-container {
+    max-width: 550px;
+    margin: 50px auto;
+    padding: 40px;
+    border: 1px solid var(--primary-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-elevated);
+    background-color: var(--card-background);
     text-align: center;
 }
 
-/* Resumo da Compra */
 .checkout-summary {
-    background-color: #f0f8ff;
-    padding: 20px;
-    border-radius: 6px;
-    margin-bottom: 25px;
-    border-left: 5px solid #007bff;
+    background-color: #f0f4ff; 
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 5px solid var(--accent-color); 
     text-align: left;
     font-size: 1.1em;
 }
 
 .checkout-summary p {
-    margin: 5px 0;
+    margin: 8px 0;
 }
 
-/* Botões de Ação */
+.checkout-summary strong {
+    color: var(--primary-dark);
+}
+
 .checkout-actions {
     display: flex;
     justify-content: space-around;
-    gap: 15px;
+    gap: 20px;
 }
 
 .checkout-button {
-    padding: 12px 25px;
+    padding: 14px 30px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-    flex-grow: 1; /* Permite que os botões se expandam */
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.1s;
+    flex-grow: 1;
 }
 
-/* Botão Confirmar */
+.checkout-button:active {
+    transform: translateY(1px);
+}
+
 .checkout-button.confirm {
-    background-color: #28a745; /* Verde */
+    background-color: #4CAF50;
     color: white;
 }
 
 .checkout-button.confirm:hover:not([disabled]) {
-    background-color: #1e7e34;
+    background-color: #388e3c;
 }
 
-/* Botão Cancelar */
 .checkout-button.cancel {
-    background-color: #dc3545; /* Vermelho */
+    background-color: #f44336; 
     color: white;
 }
 
 .checkout-button.cancel:hover:not([disabled]) {
-    background-color: #c82333;
+    background-color: #d32f2f;
 }
 
 .checkout-button:disabled {
@@ -453,105 +518,78 @@ hr {
     cursor: not-allowed;
 }
 
-/* Mensagens de Feedback */
-.checkout-message {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    font-weight: bold;
-}
+/* -------------------------------------------------------------------------------------- */
+/* --- 8. SearchBar --- */
+/* -------------------------------------------------------------------------------------- */
 
-.checkout-message.success {
-    background-color: #d4edda;
-    color: #155724;
-    border-color: #c3e6cb;
-}
-
-.checkout-message.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-color: #f5c6cb;
-}
-
-/* Estilos para a Lista de Veículos */
-.vehicle-listing-container {
-    padding: 20px;
-}
-
-.car-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-}
-
-/* Estilos para o Card de Veículo */
-.card-vehicle {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    background-color: #fff;
-    transition: transform 0.2s ease;
-}
-
-.card-vehicle:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-.card-title {
-    color: #007bff;
-    font-size: 1.4em;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.card-price strong {
-    color: #28a745; /* Verde para o preço */
-    font-size: 1.2em;
-}
-
-.card-status {
-    margin: 10px 0;
-    font-weight: 600;
-}
-
-.status-available {
-    color: green;
-    margin-left: 5px;
-}
-
-.status-sold {
-    color: red;
-    margin-left: 5px;
-}
-
-/* Estilo para quando o veículo estiver vendido */
-.card-vehicle.sold {
-    opacity: 0.6;
-    border-left: 5px solid red;
-}
-
-/* Botão de Compra */
-.buy-button {
+.search-bar-container {
+    display: flex;
+    margin: 20px auto; 
     width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
+    max-width: 500px;
+    border: 2px solid var(--border-color); 
+    border-radius: 50px; 
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 12px 20px;
     border: none;
-    border-radius: 4px;
+    font-size: 1em;
+    outline: none;
+}
+
+.clear-button {
+    background: none;
+    border: none;
+    padding: 0 15px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    color: #999;
+    font-size: 20px;
+    transition: color 0.3s;
 }
 
-.buy-button:hover:not([disabled]) {
-    background-color: #0056b3;
+.clear-button:hover {
+    color: #333;
 }
 
-.buy-button.disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+
+/* -------------------------------------------------------------------------------------- */
+/* --- 9. Scrollbar Customization (Webkit Browsers) --- */
+/* -------------------------------------------------------------------------------------- */
+
+/* Customização Global (afeta body, content-area e sidebar) */
+body, .content-area, .sidebar { 
+    -ms-overflow-style: none;  
+    scrollbar-width: thin;     
+    scrollbar-color: rgba(63, 81, 181, 0.5) transparent; 
+}
+
+/* Largura da Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+/* Estilo da Track (fundo da scrollbar) */
+::-webkit-scrollbar-track {
+    background: var(--background-light); 
+    border-radius: 10px;
+}
+
+/* Estilo do Thumb (a alça que você arrasta) */
+::-webkit-scrollbar-thumb {
+    background-color: rgba(63, 81, 181, 0.5); /* Azul primário semi-transparente */
+    border-radius: 10px;
+    border: 2px solid transparent; 
+    background-clip: content-box;
+}
+
+/* Estilo do Thumb no Hover */
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-dark); 
 }

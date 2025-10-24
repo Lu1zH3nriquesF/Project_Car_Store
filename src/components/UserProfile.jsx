@@ -84,7 +84,7 @@ function UserProfile({ userId }) {
         }
         
         if (Object.keys(dataToSend).length === 0) {
-            setSaveMessage({ type: 'info', text: 'Nenhuma alteração detectada.' });
+            setSaveMessage({ type: 'info', text: 'Any change detected.' });
             setLoading(false);
             setIsEditing(false);
             return;
@@ -100,15 +100,15 @@ function UserProfile({ userId }) {
             const result = await response.json();
 
             if (response.ok) {
-                setSaveMessage({ type: 'success', text: result.message || 'Perfil atualizado com sucesso!' });
+                setSaveMessage({ type: 'success', text: result.message || 'Profile successfully updated!' });
                 setIsEditing(false);
                 await fetchProfile(); // Recarrega os dados
             } else {
-                setSaveMessage({ type: 'error', text: result.detail || 'Falha ao salvar o perfil.' });
+                setSaveMessage({ type: 'error', text: result.detail || 'Fail to save the profile.' });
             }
         } catch (err) {
             console.error("Save Error:", err);
-            setSaveMessage({ type: 'error', text: "Erro de conexão ao tentar salvar o perfil." });
+            setSaveMessage({ type: 'error', text: "Connection Error with your profile." });
         } finally {
             setLoading(false);
         }

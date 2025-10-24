@@ -52,7 +52,7 @@ function App() {
         setVehicleToCheckout(vehicle); 
         
         if (loggedInUserId === null) {
-            alert("Você precisa estar logado para comprar um carro. Redirecionando para Login.");
+            alert("You need to do login to sell a car. Redirect you to login");
             setActiveScreen('auth'); 
             return;
         }

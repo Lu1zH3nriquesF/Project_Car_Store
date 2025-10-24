@@ -29,7 +29,7 @@ function PasswordResetForm() {
 
         // A checagem de coincidência também é feita no frontend para feedback imediato
         if (formData.new_password !== formData.confirm_password) {
-            setMessage({ type: 'error', text: 'As senhas não coincidem.' });
+            setMessage({ type: 'error', text: 'The passwords are not the same.' });
             setLoading(false);
             return;
         }
@@ -44,15 +44,15 @@ function PasswordResetForm() {
             const result = await response.json();
 
             if (response.ok) {
-                setMessage({ type: 'success', text: result.message || 'Senha redefinida com sucesso!' });
+                setMessage({ type: 'success', text: result.message || 'Password successfully changed!' });
                 setFormData({ email: '', new_password: '', confirm_password: '' }); // Limpa o form
             } else {
-                setMessage({ type: 'error', text: result.detail || 'Falha ao redefinir a senha.' });
+                setMessage({ type: 'error', text: result.detail || 'Fail to change the password.' });
             }
 
         } catch (err) {
             console.error("Reset Password Error:", err);
-            setMessage({ type: 'error', text: "Erro de conexão ao tentar redefinir a senha." });
+            setMessage({ type: 'error', text: "Connection error to change the password." });
         } finally {
             setLoading(false);
         }

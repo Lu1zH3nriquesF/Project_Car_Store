@@ -21,7 +21,7 @@ function SellerDashboard({ onComplete }) {
         
         if (!newUserId) {
              // Esta mensagem não deve mais ocorrer se o backend estiver corrigido
-             alert("Erro Crítico: ID do Usuário não retornado. Verifique o main.py.");
+             alert("Error Critic: User Id not return.");
              setStep('register');
              return;
         }
@@ -42,7 +42,7 @@ function SellerDashboard({ onComplete }) {
      * Lida com o sucesso do cadastro do veículo (após o 'Person' preencher).
      */
     const handleVehicleRegistrationSuccess = () => {
-        alert("Veículo cadastrado com sucesso! Você será redirecionado para o seu Perfil.");
+        alert("Vehicle successfully registered. Redirecting you to your profile");
         setStep('complete');
     };
 
@@ -66,8 +66,8 @@ function SellerDashboard({ onComplete }) {
             case 'vehicle_form':
                 return (
                     <div>
-                        <h2>Bem-vindo(a), {sellerInfo?.name || 'Vendedor Pessoa'}!</h2>
-                        <p>Por favor, liste seu primeiro carro agora.</p>
+                        <h2>Welcome, {sellerInfo?.name || 'People Seller'}!</h2>
+                        <p>Please, listing your first vehicle right now.</p>
                         {/* 🌟 CORREÇÃO DE CHAVE ESTRANGEIRA: Passando o ID do vendedor */}
                         <VehicleRegistration 
                             onSuccess={handleVehicleRegistrationSuccess}
@@ -79,10 +79,10 @@ function SellerDashboard({ onComplete }) {
             case 'company_complete':
                 return (
                     <div style={{ textAlign: 'center', padding: '50px' }}>
-                        <h2>Registro de Empresa Concluído!</h2>
-                        <p>Sua empresa, **{sellerInfo?.company_name}**, foi registrada com sucesso.</p>
+                        <h2>Company register is completed!</h2>
+                        <p>Your company, **{sellerInfo?.company_name}**, was successfully registerd.</p>
                         <button onClick={handleFinalize} className="nav-button active">
-                            Ver Meu Perfil
+                            See your profiel
                         </button>
                     </div>
                 );
@@ -90,8 +90,8 @@ function SellerDashboard({ onComplete }) {
             case 'complete':
                 return (
                     <div style={{ textAlign: 'center', padding: '50px' }}>
-                        <h2>Processo Concluído!</h2>
-                        <p>Obrigado pelo seu registro e listagem do veículo.</p>
+                        <h2>Process is complet!</h2>
+                        <p>Thanks to register your vehicle.</p>
                         <button onClick={handleFinalize} className="nav-button active">
                             Ir para Listagem Principal
                         </button>

@@ -61,14 +61,14 @@ const Checkout = ({ vehicleData, clienteId, onSuccess, onCancel }) => {
 
             if (response.ok) {
                 // Sucesso na transação
-                alert(`Parabéns! Você comprou o ${Mark} ${Model}.\nID da Venda: ${result.Sell_id}`);
+                alert(`Congradulations! You bought the ${Mark} ${Model}.\nSell ID: ${result.Sell_id}`);
                 onSuccess(); // Volta para a listagem (e recarrega)
 
             } else {
                 // Erros de API (400, 404, 500, etc.)
-                const errorMessage = result.detail || "Erro desconhecido na transação.";
+                const errorMessage = result.detail || "Unknown error with the transation.";
                 setError(errorMessage);
-                alert(`Falha na Compra: ${errorMessage}`);
+                alert(`Fail with the shopping: ${errorMessage}`);
             }
         } catch (err) {
             // Erros de Rede/Servidor
