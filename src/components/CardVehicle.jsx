@@ -26,11 +26,11 @@
 
         const handleBuy = () => {
             if (!isAvailable) {
-                alert("Este veículo não está disponível para compra.");
+                alert("This vehicle isn't available to shooping.");
                 return;
             }
             
-            const confirmed = window.confirm(`Confirmar: Comprar ${Mark} ${Model} por R$ ${formattedPrice}?`);
+            const confirmed = window.confirm(`Confirm: Buy ${Mark} ${Model} by R$ ${formattedPrice}?`);
             if (confirmed) {
                 // Chama a função passada pelo App.jsx, enviando o objeto completo do veículo
                 onBuyClick(vehicle); 
@@ -41,13 +41,13 @@
             <div className={`card-vehicle ${isAvailable ? '' : 'sold'}`}>
                 <h3 className="card-title">{Mark} {Model} ({Year})</h3>
                 
-                <p className="card-price">Preço: <strong>R$ {formattedPrice}</strong></p>
+                <p className="card-price">Price: <strong>R$ {formattedPrice}</strong></p>
                 <p className="card-id">ID: {id}</p>
                 
                 <div className="card-status">
                     Status: 
                     <span className={isAvailable ? 'status-available' : 'status-sold'}>
-                        {isAvailable ? 'Disponível' : 'Vendido'}
+                        {isAvailable ? 'Available' : 'Sold'}
                     </span>
                 </div>
 
@@ -56,7 +56,7 @@
                     disabled={!isAvailable}
                     className={`buy-button ${isAvailable ? '' : 'disabled'}`}
                 >
-                    {isAvailable ? 'Comprar Agora' : 'Vendido'}
+                    {isAvailable ? 'Buy Now' : 'Sold'}
                 </button>
             </div>
         );

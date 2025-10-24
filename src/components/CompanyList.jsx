@@ -50,7 +50,7 @@ const CompanyList = () => {
                 setError(null);
                 
             } catch (err) {
-                console.error("Erro na busca de empresas:", err);
+                console.error("Error to Search company:", err);
                 setError(`Could not load company list. Please check the console for details. (Detalhe: ${err.message})`);
                 setCompanies([]); 
             } finally {
@@ -62,7 +62,7 @@ const CompanyList = () => {
     }, []);
 
     if (loading) {
-        return <div className="loading-message">Carregando lista de empresas...</div>;
+        return <div className="loading-message">Loading Comapany List...</div>;
     }
 
     if (error) {
@@ -70,12 +70,12 @@ const CompanyList = () => {
     }
 
     if (companies.length === 0) {
-        return <div className="empty-message">Nenhuma empresa registrada.</div>;
+        return <div className="empty-message">Any company registered.</div>;
     }
     
     return (
         <div className="company-list-container">
-            <h1>Empresas Parceiras</h1>
+            <h1>Companies Patherns</h1>
             {/* 🎯 AQUI: Container que usará CSS Grid ou Flexbox para organizar os cards */}
             <div className="company-cards-grid"> 
                 {companies.map(company => (

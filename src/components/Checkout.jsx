@@ -18,8 +18,8 @@ const Checkout = ({ vehicleData, clienteId, onSuccess, onCancel }) => {
     if (!vehicleData || !clienteId) {
         return (
             <div className="checkout-container">
-                <h1 className="error-message">Erro de Checkout: Informações incompletas.</h1>
-                <button onClick={onCancel} className="btn-cancel">Voltar para a Listagem</button>
+                <h1 className="error-message">Checkout Error: Incomplet informations.</h1>
+                <button onClick={onCancel} className="btn-cancel">Back to listing</button>
             </div>
         );
     }
@@ -101,7 +101,7 @@ const Checkout = ({ vehicleData, clienteId, onSuccess, onCancel }) => {
                     disabled={loading}
                     className="btn-confirm-buy"
                 >
-                    {loading ? 'Processando...' : 'Confirmar Pagamento'}
+                    {loading ? 'Processing...' : 'Confirm Payment'}
                 </button>
                 
                 <button 
