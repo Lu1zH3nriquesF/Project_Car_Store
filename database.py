@@ -1,10 +1,13 @@
 import pymysql.cursors # type: ignore
 from contextlib import contextmanager
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 host = 'localhost'
 user = 'root'
-password = 'LHsf@13032005'
+password = os.getenv("DB_PASSWORD")
 db = 'venda_carros'
 charset = 'utf8mb4'
 cursorclass = pymysql.cursors.DictCursor
