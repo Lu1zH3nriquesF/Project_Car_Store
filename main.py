@@ -37,7 +37,7 @@ class UserIn(BaseModel):
     email:str
     password: str
     account_type: str
-    phone_number: Optional[str] = None
+    phone_number: str
     company_name: Optional[str] = None 
     cnpj: Optional[str] = None
     
@@ -103,7 +103,15 @@ class SearchLLM(BaseModel):
     
 @app.post("/register/")
 def register_user(user: UserIn):
+    
+    if len(user.password) < 6:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Type a password with 6 or more characters")
+    
     hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    phone_number_request = user.phone_number
+    
+    if len(phone_number_request) != 10 or phone_number_request.isdigit() is False:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please type a valid phone number.")
     
     query_user = """
         insert into users (name, email, Password_hash, users.Account_Type, users.Phone_Number)
@@ -114,7 +122,7 @@ def register_user(user: UserIn):
         user.email,
         hashed_password,
         user.account_type,
-        user.phone_number
+        phone_number_request
     )
     
     query_company = """
